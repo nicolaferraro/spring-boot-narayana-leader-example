@@ -1,9 +1,11 @@
 package io.snowdrop.narayana;
 
+import com.arjuna.ats.arjuna.recovery.RecoveryManager;
 import com.arjuna.ats.jbossatx.jta.RecoveryManagerService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.jta.narayana.NarayanaRecoveryManagerBean;
+import org.springframework.context.annotation.Bean;
 
 /**
  * Main Spring Boot application class.
@@ -14,9 +16,20 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class ExampleApplication {
 
     public static void main(String... args) {
-        ConfigurableApplicationContext context = SpringApplication.run(ExampleApplication.class, args);
-        RecoveryManagerService recoveryManagerService = context.getBean(RecoveryManagerService.class);
-        recoveryManagerService.addXAResourceRecovery(new DummyXAResourceRecovery());
+        SpringApplication.run(ExampleApplication.class, args);
+    }
+
+    /**
+     * Override NarayanaRecoveryManagerBean. Currently NarayanaRecoveryManagerBean provided by Spring Boot cannot be
+     * replaces, so a change in Spring Boot is needed.
+     *
+     * @param recoveryManagerService Recovery manager service which should be started.
+     * @return
+     */
+    @Bean
+    public NarayanaRecoveryManagerBean narayanaRecoveryManager(RecoveryManagerService recoveryManagerService) {
+        RecoveryManager.delayRecoveryManagerThread();
+        return new CustomNarayanaRecoveryManagerBean(recoveryManagerService);
     }
 
 }

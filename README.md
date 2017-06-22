@@ -1,3 +1,9 @@
+# Description
+
+This application demonstrates usage of Narayana inside of a Spring Boot application running on OpenShift.
+
+Standard Narayan Spring Boot application has its own transaction and recovery managers. However, because of volatile OpenShift pods it is not safe to have such a setup. In a scenario where pod is killed in a middle of a transaction, there would be impossible to recover uncompleted transaction. For that reason, this example extends current Narayana integration and requires application to run on an OpenShift stateful set. As a result, only a first pod will run recovery manager which will be responsible for recovering transactions of all other pods. It will access their transaction records from JDBC object store configured in a separate PostgreSQL deployment.
+
 # Execution steps
 1. Deploy database
 ```
@@ -9,13 +15,45 @@ oc new-app \
     --name=narayana-database \
     --template=postgresql-persistent
 ```
-2. Build Spring Boot from [here](https://github.com/gytis/spring-boot/tree/1.5.x-narayana-connection-fixes) (1.5.5.BUILD-SNAPSHOT)
-3. Build Narayana master (5.6.2.Final-SNAPSHOT)
-4. Deploy to OpenShift
+2. Set environment variable
+```
+POSTGRESQL_MAX_PREPARED_TRANSACTIONS=100
+``` 
+
+
+3. Build Spring Boot from [here](https://github.com/gytis/spring-boot/tree/1.5.x-narayana-connection-fixes) (1.5.5.BUILD-SNAPSHOT)
 
 ```
-    mvn clean fabric8:deploy -Dfabric8.mode=kubernetes
+mvn clean install -DskipTests
 ```
+
+4. Deploy this application to OpenShift
+
+```
+mvn clean fabric8:deploy -Dfabric8.mode=kubernetes
+```
+
+5. Scale-up application
+
+```
+kubectl scale statefulsets spring-boot-narayana-stateful-set-example --replicas=2
+```
+
+6. Get entries
+```
+curl http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io
+```
+
+7. Create new entry
+```
+curl -X POST http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io?entry=hello
+```
+
+8. Crash when creating entry
+```
+curl -X POST http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io?entry=kill
+```
+New entry 'kill' should appear after pod is restarted and recovery completes. Try killing different containers (requests are routed interchangeably between two pods).
 
 # Undeploy application
 ```
@@ -43,19 +81,3 @@ psql -h narayana-database -U narayana
 ```
 delete from actionjbosststxtable;
 ```
-
-# Get entries
-```
-curl http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io
-```
-
-# Create new entry
-```
-curl -X POST http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io?entry=hello
-```
-
-# Crash when creating entry
-```
-curl -X POST http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io?entry=kill
-```
-New entry 'kill' should appear after pod is restarted and recovery completes.

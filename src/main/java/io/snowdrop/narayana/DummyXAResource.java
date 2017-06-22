@@ -31,6 +31,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * Dummy XAResource which is able to kill the system before a commit.
+ *
  * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
  */
 public class DummyXAResource implements XAResource {
@@ -41,18 +43,36 @@ public class DummyXAResource implements XAResource {
 
     private final boolean kill;
 
+    /**
+     *
+     * @param kill Whether system should be killed before a commit or not.
+     */
     public DummyXAResource(boolean kill) {
         this.kill = kill;
     }
 
+    /**
+     * Method always response OK but before writes branch Xid to the database. This allows resource to be recovered.
+     *
+     * @param xid
+     * @return
+     * @throws XAException
+     */
     @Override
     public int prepare(Xid xid) throws XAException {
         persistXid(xid);
-        return 0;
+        return XAResource.XA_OK;
     }
 
+    /**
+     * If system crash was requested, runtime will be halted. Otherwise, Xid will be removed from the database.
+     *
+     * @param xid
+     * @param onePhase
+     * @throws XAException
+     */
     @Override
-    public void commit(Xid xid, boolean b) throws XAException {
+    public void commit(Xid xid, boolean onePhase) throws XAException {
         if (kill) {
             System.out.println("Crashing the system");
             Runtime.getRuntime().halt(1);
@@ -66,7 +86,7 @@ public class DummyXAResource implements XAResource {
     }
 
     @Override
-    public Xid[] recover(int i) throws XAException {
+    public Xid[] recover(int flag) throws XAException {
         Xid[] xids = getXid()
                 .map(xid -> new Xid[] { xid })
                 .orElse(EMPTY_XID_ARRAY);
@@ -80,7 +100,7 @@ public class DummyXAResource implements XAResource {
     }
 
     @Override
-    public void end(Xid xid, int i) throws XAException {
+    public void end(Xid xid, int flags) throws XAException {
     }
 
     @Override
@@ -93,12 +113,12 @@ public class DummyXAResource implements XAResource {
     }
 
     @Override
-    public boolean setTransactionTimeout(int i) throws XAException {
+    public boolean setTransactionTimeout(int seconds) throws XAException {
         return false;
     }
 
     @Override
-    public void start(Xid xid, int i) throws XAException {
+    public void start(Xid xid, int flags) throws XAException {
     }
 
     private void persistXid(Xid xid) throws XAException {

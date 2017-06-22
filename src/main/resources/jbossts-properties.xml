@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
-  <!-- TODO -->
+  <!-- TODO this should be unique per deployment, maybe container host name could be used -->
   <entry key="CoreEnvironmentBean.nodeIdentifier">1</entry>
-  <!-- TODO -->
-  <entry key="JTAEnvironmentBean.xaRecoveryNodes">1</entry>
+  <!-- Tell recovery manager to recovery every node -->
+  <entry key="JTAEnvironmentBean.xaRecoveryNodes">*</entry>
   <entry key="JTAEnvironmentBean.xaResourceOrphanFilterClassNames">
     com.arjuna.ats.internal.jta.recovery.arjunacore.JTATransactionLogXAResourceOrphanFilter
     com.arjuna.ats.internal.jta.recovery.arjunacore.JTANodeNameXAResourceOrphanFilter
@@ -22,6 +22,7 @@
   <entry key="RecoveryEnvironmentBean.transactionStatusManagerPort">0</entry>
   <entry key="RecoveryEnvironmentBean.recoveryListener">NO</entry>
 
+  <!-- Setup JDBC object store to use PostgreSQL -->
   <entry key="ObjectStoreEnvironmentBean.objectStoreType">
     com.arjuna.ats.internal.arjuna.objectstore.jdbc.JDBCStore
   </entry>

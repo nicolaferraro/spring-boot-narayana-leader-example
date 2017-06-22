@@ -3,10 +3,11 @@ package io.snowdrop.narayana;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 import javax.transaction.Transactional;
 import javax.transaction.xa.XAResource;
-import java.net.InetAddress;
 import java.util.List;
 
 /**
@@ -28,19 +29,22 @@ public class EntriesService {
         this.transactionManager = transactionManager;
     }
 
-    public Entry create(String value) throws Exception {
-        transactionManager
-                .getTransaction()
-                .enlistResource(getXaResource(value));
-        return  entriesRepository.save(new Entry(value));
+    public Entry create(String value) throws RollbackException, SystemException {
+        // Enlisting extra XAResource to have a 2 phase commit and to be able to simulate system crash
+        enlistDummyResource(value);
+        return entriesRepository.save(new Entry(value));
     }
 
     public List<Entry> getAll() {
         return entriesRepository.findAll();
     }
 
-    private XAResource getXaResource(String value) {
-        return new DummyXAResource("kill".equals(value));
+    private void enlistDummyResource(String value) throws SystemException, RollbackException {
+        // If value == 'kill' tell XAResource to crash the system before commit
+        XAResource xaResource = new DummyXAResource("kill".equals(value));
+        transactionManager
+                .getTransaction()
+                .enlistResource(xaResource);
     }
 
 }
