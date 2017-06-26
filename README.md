@@ -27,29 +27,43 @@ POSTGRESQL_MAX_PREPARED_TRANSACTIONS=100
 mvn clean install -DskipTests
 ```
 
-4. Deploy this application to OpenShift
+4. Build Camel from [here](https://github.com/apache/camel) (2.20.0-SNAPSHOT)
 
 ```
-mvn clean fabric8:deploy -Dfabric8.mode=kubernetes
+mvn clean install -P fastinstall
 ```
 
-5. Scale-up application
+5. Deploy the Atomix boot-node from [here](https://github.com/lburgazzoli/atomix-boot)
 
 ```
-kubectl scale statefulsets spring-boot-narayana-stateful-set-example --replicas=2
+mvn clean install
+cd atomix-boot-node
+mvn clean fabric8:deploy -P fabric8
 ```
 
-6. Get entries
+6. Deploy this application to OpenShift
+
+```
+mvn clean fabric8:deploy
+```
+
+7. Scale-up application
+
+```
+oc scale deploymentconfigs spring-boot-narayana-stateful-set-example --replicas=2
+```
+
+8. Get entries
 ```
 curl http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io
 ```
 
-7. Create new entry
+9. Create new entry
 ```
 curl -X POST http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io?entry=hello
 ```
 
-8. Crash when creating entry
+10. Crash when creating entry
 ```
 curl -X POST http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io?entry=kill
 ```
@@ -57,7 +71,7 @@ New entry 'kill' should appear after pod is restarted and recovery completes. Tr
 
 # Undeploy application
 ```
-kubectl delete statefulsets/spring-boot-narayana-stateful-set-example
+kubectl delete deploymentconfigs/spring-boot-narayana-stateful-set-example
 ```
 
 # Check object store

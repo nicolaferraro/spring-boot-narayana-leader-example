@@ -17,12 +17,15 @@
 package io.snowdrop.narayana;
 
 import com.arjuna.ats.jbossatx.jta.RecoveryManagerService;
+
+import org.apache.camel.ha.CameClusterEventListener;
+import org.apache.camel.ha.CamelClusterMember;
+import org.apache.camel.ha.CamelClusterView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.jta.narayana.NarayanaRecoveryManagerBean;
 import org.springframework.context.event.EventListener;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 /**
  * This bean makes sure that recover manager service is only stared on a host which name ends with '-0' i.e. on a first
@@ -34,37 +37,61 @@ import java.net.UnknownHostException;
  *
  * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
  */
-public class CustomNarayanaRecoveryManagerBean extends NarayanaRecoveryManagerBean {
+public class CustomNarayanaRecoveryManagerBean extends NarayanaRecoveryManagerBean implements CameClusterEventListener.Leadership {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CustomNarayanaRecoveryManagerBean.class);
 
     private final RecoveryManagerService recoveryManagerService;
+
+    private volatile boolean started;
 
     public CustomNarayanaRecoveryManagerBean(RecoveryManagerService recoveryManagerService) {
         super(recoveryManagerService);
         this.recoveryManagerService = recoveryManagerService;
     }
 
-    @EventListener
-    public void create(ApplicationReadyEvent ignored) {
-        if (shouldStartRecoveryService()) {
-            System.out.println("Starting recovery service");
-            super.create(ignored);
+    @Override
+    public void leadershipChanged(CamelClusterView view, CamelClusterMember leader) {
+        boolean newLeaderInstance = leader.getId().equals(view.getLocalMember().getId());
+
+        LOG.info("Leadership for cluster '{}' has changed. The new leader is {} ({})", view.getNamespace(), leader, newLeaderInstance ? "we are leaders" : "not us");
+
+        if (newLeaderInstance) {
+            this.doStart();
+        } else {
+            this.doStop();
+        }
+    }
+
+    private void doStart() {
+        if (!started) {
+            started = true;
+            LOG.info("Starting the recovery service");
+            super.create(null);
             recoveryManagerService.addXAResourceRecovery(new DummyXAResourceRecovery());
         }
     }
 
-    @Override
-    public void destroy() throws Exception {
-        if (shouldStartRecoveryService()) {
-            super.destroy();
+    private void doStop() {
+        try {
+            destroy();
+        } catch (Exception ex) {
+            LOG.error("Unable to stop the recovery service properly", ex);
+        } finally {
+            started = false;
         }
     }
 
-    private boolean shouldStartRecoveryService() {
-        try {
-            return InetAddress.getLocalHost().getHostName().endsWith("-0");
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return false;
+    @EventListener
+    public void create(ApplicationReadyEvent ignored) {
+        // Do not participate to default spring lifecycle upon creation
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        if (started) {
+            LOG.info("Stopping the recovery service");
+            super.destroy();
         }
     }
 
