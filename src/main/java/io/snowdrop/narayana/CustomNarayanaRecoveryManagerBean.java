@@ -18,7 +18,7 @@ package io.snowdrop.narayana;
 
 import com.arjuna.ats.jbossatx.jta.RecoveryManagerService;
 
-import org.apache.camel.ha.CameClusterEventListener;
+import org.apache.camel.ha.CamelClusterEventListener;
 import org.apache.camel.ha.CamelClusterMember;
 import org.apache.camel.ha.CamelClusterView;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ import org.springframework.context.event.EventListener;
  *
  * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
  */
-public class CustomNarayanaRecoveryManagerBean extends NarayanaRecoveryManagerBean implements CameClusterEventListener.Leadership {
+public class CustomNarayanaRecoveryManagerBean extends NarayanaRecoveryManagerBean implements CamelClusterEventListener.Leadership {
 
     private static final Logger LOG = LoggerFactory.getLogger(CustomNarayanaRecoveryManagerBean.class);
 

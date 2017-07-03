@@ -1,15 +1,10 @@
 package io.snowdrop.narayana;
 
-import java.net.InetAddress;
-import java.util.Collections;
-
-import io.atomix.catalyst.transport.Address;
-
 import com.arjuna.ats.arjuna.recovery.RecoveryManager;
 import com.arjuna.ats.jbossatx.jta.RecoveryManagerService;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.component.atomix.ha.AtomixClusterClientService;
+import org.apache.camel.component.kubernetes.ha.KubernetesClusterService;
 import org.apache.camel.ha.CamelClusterService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -45,13 +40,13 @@ public class ExampleApplication {
 
     @Bean
     public CamelClusterService clusterService(CamelContext context) throws Exception {
-        AtomixClusterClientService service = new AtomixClusterClientService();
-        service.setId(InetAddress.getLocalHost().getHostName());
-        service.setNodes(Collections.singletonList(new Address("atomix-boot-node", 8700)));
+        KubernetesClusterService kubernetes = new KubernetesClusterService();
+        kubernetes.setMasterUrl("https://" + System.getenv("KUBERNETES_SERVICE_HOST") + ":" + System.getenv("KUBERNETES_SERVICE_PORT"));
+        kubernetes.setConfigMapName("leaders");
+        kubernetes.setKubernetesNamespace("myproject");
+        context.addService(kubernetes);
 
-        context.addService(service);
-
-        return service;
+        return kubernetes;
     }
 
 }

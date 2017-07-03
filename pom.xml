@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.snowdrop</groupId>
-  <artifactId>spring-boot-narayana-stateful-set-example</artifactId>
+  <artifactId>spring-boot-narayana-leader-example</artifactId>
   <version>1</version>
 
   <properties>
@@ -69,7 +69,12 @@
     </dependency>
     <dependency>
       <groupId>org.apache.camel</groupId>
-      <artifactId>camel-atomix</artifactId>
+      <artifactId>camel-kubernetes</artifactId>
+      <version>${camel.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-kubernetes</artifactId>
       <version>${camel.version}</version>
     </dependency>
     <dependency>

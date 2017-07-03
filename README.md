@@ -27,18 +27,23 @@ POSTGRESQL_MAX_PREPARED_TRANSACTIONS=100
 mvn clean install -DskipTests
 ```
 
-4. Build Camel from [here](https://github.com/apache/camel) (2.20.0-SNAPSHOT)
+4. Build Kubernetes Client from [here](https://github.com/nicolaferraro/kubernetes-client/tree/767-optimistic-lock)
+
+```
+mvn clean install -DskipTests
+```
+
+5. Build Camel from [here](https://github.com/nicolaferraro/camel/tree/CAMEL-11331-v2) (2.20.0-SNAPSHOT with CAMEL-11331)
 
 ```
 mvn clean install -P fastinstall
 ```
 
-5. Deploy the Atomix boot-node from [here](https://github.com/lburgazzoli/atomix-boot)
+5. Create the service account for the pod
 
 ```
-mvn clean install
-cd atomix-boot-node
-mvn clean fabric8:deploy -P fabric8
+oc create serviceaccount leader
+oc adm policy add-role-to-user edit --serviceaccount leader
 ```
 
 6. Deploy this application to OpenShift
@@ -50,7 +55,7 @@ mvn clean fabric8:deploy
 7. Scale-up application
 
 ```
-oc scale deploymentconfigs spring-boot-narayana-stateful-set-example --replicas=2
+oc scale deploymentconfigs spring-boot-narayana-leader-example --replicas=2
 ```
 
 8. Get entries
