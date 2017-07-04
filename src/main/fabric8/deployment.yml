@@ -3,3 +3,9 @@ spec:
   template:
     spec:
       serviceAccount: leader
+      containers:
+      - env:
+        - name: NARAYANA_NODE_IDENTIFIER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
