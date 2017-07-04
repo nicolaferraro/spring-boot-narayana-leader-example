@@ -1,5 +1,7 @@
 package io.snowdrop.narayana;
 
+import java.util.Collections;
+
 import com.arjuna.ats.arjuna.recovery.RecoveryManager;
 import com.arjuna.ats.jbossatx.jta.RecoveryManagerService;
 
@@ -41,9 +43,7 @@ public class ExampleApplication {
     @Bean
     public CamelClusterService clusterService(CamelContext context) throws Exception {
         KubernetesClusterService kubernetes = new KubernetesClusterService();
-        kubernetes.setMasterUrl("https://" + System.getenv("KUBERNETES_SERVICE_HOST") + ":" + System.getenv("KUBERNETES_SERVICE_PORT"));
-        kubernetes.setConfigMapName("leaders");
-        kubernetes.setKubernetesNamespace("myproject");
+        kubernetes.setClusterLabels(Collections.singletonMap("deploymentconfig", "spring-boot-narayana-leader-example"));
         context.addService(kubernetes);
 
         return kubernetes;
