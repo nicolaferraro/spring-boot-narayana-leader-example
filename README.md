@@ -17,7 +17,7 @@ oc new-app \
 ```
 2. Set environment variable
 ```
-POSTGRESQL_MAX_PREPARED_TRANSACTIONS=100
+oc env deploymentconfig/narayana-database -e POSTGRESQL_MAX_PREPARED_TRANSACTIONS=100
 ``` 
 
 
@@ -39,44 +39,31 @@ mvn clean install -DskipTests
 mvn clean install -P fastinstall
 ```
 
-5. Create the service account for the pod
-
-```
-oc create serviceaccount leader
-oc adm policy add-role-to-user edit --serviceaccount leader
-```
-
-6. Deploy this application to OpenShift
+5. Deploy this application to OpenShift
 
 ```
 mvn clean fabric8:deploy
 ```
 
-7. Scale-up application
-
+6. Get entries
 ```
-oc scale deploymentconfigs spring-boot-narayana-leader-example --replicas=2
-```
-
-8. Get entries
-```
-curl http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io
+curl http://spring-boot-narayana-leader-example-myproject.127.0.0.1.nip.io
 ```
 
-9. Create new entry
+7. Create new entry
 ```
-curl -X POST http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io?entry=hello
+curl -X POST http://spring-boot-narayana-leader-example-myproject.127.0.0.1.nip.io?entry=hello
 ```
 
-10. Crash when creating entry
+8. Crash when creating entry
 ```
-curl -X POST http://spring-boot-narayana-stateful-set-example-test.192.168.64.3.nip.io?entry=kill
+curl -X POST http://spring-boot-narayana-leader-example-myproject.127.0.0.1.nip.io?entry=kill
 ```
 New entry 'kill' should appear after pod is restarted and recovery completes. Try killing different containers (requests are routed interchangeably between two pods).
 
 # Undeploy application
 ```
-kubectl delete deploymentconfigs/spring-boot-narayana-stateful-set-example
+oc delete deploymentconfigs/spring-boot-narayana-leader-example
 ```
 
 # Check object store

@@ -108,13 +108,12 @@
         <artifactId>fabric8-maven-plugin</artifactId>
         <version>3.4.1</version>
         <configuration>
-          <!--<enricher>-->
-            <!--<config>-->
-              <!--<fmp-controller>-->
-                <!--<type>StatefulSet</type>-->
-              <!--</fmp-controller>-->
-            <!--</config>-->
-          <!--</enricher>-->
+          <resources>
+            <env>
+              <!-- For faster startup -->
+              <AB_JOLOKIA_OFF>true</AB_JOLOKIA_OFF>
+            </env>
+          </resources>
         </configuration>
         <executions>
           <execution>
