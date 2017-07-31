@@ -15,7 +15,7 @@ oc new-app \
     --name=narayana-database \
     --template=postgresql-persistent
 ```
-2. Set environment variable
+2. Set environment variable (wait for the pod to be ready before doing this)
 ```
 oc env deploymentconfig/narayana-database -e POSTGRESQL_MAX_PREPARED_TRANSACTIONS=100
 ``` 
@@ -33,7 +33,7 @@ mvn clean install -DskipTests
 mvn clean install -DskipTests
 ```
 
-5. Build Camel from [here](https://github.com/nicolaferraro/camel/tree/CAMEL-11331-v3) (2.20.0-SNAPSHOT with CAMEL-11331)
+5. Build Camel from [here](https://github.com/nicolaferraro/camel/tree/CAMEL-11331-v4) (2.20.0-SNAPSHOT with CAMEL-11331)
 
 ```
 mvn clean install -P fastinstall
