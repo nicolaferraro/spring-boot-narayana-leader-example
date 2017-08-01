@@ -52,7 +52,7 @@ public class CustomNarayanaRecoveryManagerBean extends NarayanaRecoveryManagerBe
 
     @Override
     public void leadershipChanged(CamelClusterView view, CamelClusterMember leader) {
-        boolean newLeaderInstance = leader.getId().equals(view.getLocalMember().getId());
+        boolean newLeaderInstance = view.getLocalMember().isMaster();
 
         LOG.info("Leadership for cluster '{}' has changed. The new leader is {} ({})", view.getNamespace(), leader, newLeaderInstance ? "we are leaders" : "not us");
 
